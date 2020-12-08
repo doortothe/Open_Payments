@@ -10,17 +10,17 @@ library(gridExtra) #grid.arrange
 #######################################################
 
 load(file = "MPOS_OP_merge.RData") #MPOS_OP_merge
-nrow(MPOS_OP_merge) #1053958
-sum(MPOS_OP_merge$Number.of.Services) #2868851638
-sum(MPOS_OP_merge$Total.Medicare.Allowed.Amount) #125083622447
-sum(!is.na(MPOS_OP_merge$NPI_number)) #374766
+nrow(MPOS_OP_merge) #1,053,958
+sum(MPOS_OP_merge$Number.of.Services) #2,868,851,638
+sum(MPOS_OP_merge$Total.Medicare.Allowed.Amount) #125,083,622,447
+sum(!is.na(MPOS_OP_merge$NPI_number)) #374,766
 
 #limit to individual providers
 MPOS_OP_merge <- dplyr::filter(MPOS_OP_merge, Entity.Type.of.the.Provider=="I")
-nrow(MPOS_OP_merge) #991362 individual providers
-sum(MPOS_OP_merge$Number.of.Services) #2327445152 services
-sum(MPOS_OP_merge$Total.Medicare.Allowed.Amount) # $107047216808 in Medicare allowed expenses
-sum(!is.na(MPOS_OP_merge$NPI_number)) #374766 matched providers
+nrow(MPOS_OP_merge) #991,362 individual providers
+sum(MPOS_OP_merge$Number.of.Services) #2,327,445,152 services
+sum(MPOS_OP_merge$Total.Medicare.Allowed.Amount) # $107,047,216,808 in Medicare allowed expenses
+sum(!is.na(MPOS_OP_merge$NPI_number)) #374,766 matched providers
 
 #quantify drug and medical spending
 sum(MPOS_OP_merge$Total.Drug.Medicare.Allowed.Amount, na.rm=TRUE) # 15,046,696,287
@@ -106,7 +106,7 @@ samp <- sort(sample(1:N, round(N/10), replace = FALSE))
 MPOS_OP_merge_samp <- MPOS_OP_merge[samp,]
 
 #number of observations in spaghetti plots?
-sum(!is.na(MPOS_OP_merge$log_Total_Medical_Medicare) & !is.na(MPOS_OP_merge$log_Total_Pay)) #322109
+sum(!is.na(MPOS_OP_merge$log_Total_Medical_Medicare) & !is.na(MPOS_OP_merge$log_Total_Pay)) #322,109
 sum(!is.na(MPOS_OP_merge$log_Total_Medical_Medicare_perBeneficiary) & !is.na(MPOS_OP_merge$log_Total_Pay))  #322109
 
 pdf('spaghetti_points.pdf')
@@ -153,14 +153,14 @@ MPOS_OP_merge_middle <- MPOS_OP_merge_middle[MPOS_OP_merge_middle$Total_Pay < Q7
 fit <- lm(log_Total_Medical_Medicare ~ log_Total_Pay + log_NumBeneficiaries + State.Code.of.the.Provider - 1, data=MPOS_OP_merge_middle)
 summary(fit) #coefficient of log_Total_Pay = 0.13123
 round(confint(fit, parm='log_Total_Pay'),3) #0.127  0.136
-length(fit$residuals) #159389
+length(fit$residuals) #159,389
 sum(!is.na(MPOS_OP_merge_middle$log_Total_Medical_Medicare)) #159389
 
 #controlling for drug expenditures
 fit2 <- lm(log_Total_Medical_Medicare ~ log_Total_Pay + log_Total_Drug_Medicare + log_NumBeneficiaries + State.Code.of.the.Provider - 1, data=MPOS_OP_merge_middle)
 summary(fit2) #coefficient of log_Total_Pay = 0.091063
 round(confint(fit2, parm='log_Total_Pay'),3) #0.086  0.096
-length(fit2$residuals) #159389
+length(fit2$residuals) #159,389
 
 #correlation between drug and medical costs
 cor(MPOS_OP_merge_middle$Total.Medical.Medicare.Allowed.Amount, MPOS_OP_merge_middle$Total.Drug.Medicare.Allowed.Amount, method='spearman', use='pairwise.complete.obs') 
@@ -180,7 +180,7 @@ round(confint(fit_drug, parm='log_Total_Pay'),3) #0.156  0.202
 # MEDIAN MEDICAL AND DRUG COSTS
 
 median(MPOS_OP_merge_middle$Total_Pay, na.rm=TRUE) #250.93
-median(MPOS_OP_merge_middle$Total.Medical.Medicare.Allowed.Amount, na.rm=TRUE) #90646.08
+median(MPOS_OP_merge_middle$Total.Medical.Medicare.Allowed.Amount, na.rm=TRUE) #90,646.08
 
 median(MPOS_OP_merge_middle_drug$Total_Pay, na.rm=TRUE) #317.99
 median(MPOS_OP_merge_middle_drug$Total.Drug.Medicare.Allowed.Amount, na.rm=TRUE) #5862.11
