@@ -20,6 +20,7 @@ MPOS_OP_merge <- dplyr::filter(MPOS_OP_merge, Entity.Type.of.the.Provider=="I")
 nrow(MPOS_OP_merge) #991,362 individual providers
 sum(MPOS_OP_merge$Number.of.Services) #2,327,445,152 services
 sum(MPOS_OP_merge$Total.Medicare.Allowed.Amount) # $107,047,216,808 in Medicare allowed expenses
+sum(MPOS_OP_merge$Total_Pay, na.rm = TRUE) # 1,548,394,237
 sum(!is.na(MPOS_OP_merge$NPI_number)) #374,766 matched providers
 
 #quantify drug and medical spending

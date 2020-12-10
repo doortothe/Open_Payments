@@ -8,23 +8,24 @@ library(gridExtra) #grid.arrange
 
 
 MPOS_OP_Merge <- read.csv('MPOS_OP_Merge.csv', stringsAsFactors = FALSE)
-nrow(MPOS_OP_Merge) #1001967
-sum(MPOS_OP_Merge$Number_of_Services) #2,380,652,850
-sum(MPOS_OP_Merge$total_medicare_allowed_amount) #321,033,230
-sum(!is.na(MPOS_OP_Merge$National_Provider_Identifier)) #200,023 
+nrow(MPOS_OP_Merge) #345,743 336,827
+sum(MPOS_OP_Merge$Number_of_Services) #1,160,242,264 1,132,044,546
+sum(MPOS_OP_Merge$total_medicare_allowed_amount) #534,079,529 520,591,569
+sum(!is.na(MPOS_OP_Merge$NPI)) #345,743 336,827
 
 # Limit to individual providers
 MPOS_OP_Merge <- dplyr::filter(MPOS_OP_Merge, Entity_Type_of_the_Provider=='I')
-nrow(MPOS_OP_Merge) #200023
-sum(MPOS_OP_Merge$Number_of_Services) #704,649,984
-sum(MPOS_OP_Merge$total_medicare_allowed_amount) #321,033,230
-sum(!is.na(MPOS_OP_Merge$National_Provider_Identifier)) #200,023
+nrow(MPOS_OP_Merge)
+sum(MPOS_OP_Merge$Number_of_Services) 
+sum(MPOS_OP_Merge$total_medicare_allowed_amount)
+sum(MPOS_OP_Merge$total_paid) #1,169,272,504 1,093,885,681
+sum(!is.na(MPOS_OP_Merge$NPI))
 
 # Quantity drug & medical spending
-sum(MPOS_OP_Merge$total_medicare_drug_allowed_amount, na.rm=TRUE) #21,061,364
-sum(MPOS_OP_Merge$total_medicare_medical_allowed_amount, na.rm=TRUE) #20,771,244
-mean(MPOS_OP_Merge$total_medicare_drug_allowed_amount, na.rm=TRUE) #109.6124
-mean(MPOS_OP_Merge$total_medicare_medical_allowed_amount, na.rm=TRUE) #103.8484
+sum(MPOS_OP_Merge$total_medicare_drug_allowed_amount, na.rm=TRUE) #25,600,098 24,865,134 21,061,364
+sum(MPOS_OP_Merge$total_medicare_medical_allowed_amount, na.rm=TRUE) #508,479,431 495,726,435 20,771,244
+mean(MPOS_OP_Merge$total_medicare_drug_allowed_amount, na.rm=TRUE) #225.8062 224.1637 109.6124
+mean(MPOS_OP_Merge$total_medicare_medical_allowed_amount, na.rm=TRUE) #1,470.767 1,471.837 103.8484
 
 # Limit to 50 states
 political_data <- read.csv(file='Gallup_Political_Scale.csv', header=T)
@@ -34,13 +35,13 @@ state_names <- as.character(political_data$ï..State)
 MPOS_OP_Merge <- MPOS_OP_Merge %>% dplyr::filter(as.character(State_Code_of_the_Provider) %in% state_list)
 
 # total/average medical and drug spending
-sum(MPOS_OP_Merge$total_medicare_drug_allowed_amount, na.rm=TRUE) #20,937,423
-sum(MPOS_OP_Merge$total_medicare_medical_allowed_amount, na.rm=TRUE) #20,639,698
-mean(MPOS_OP_Merge$total_medicare_drug_allowed_amount, na.rm=TRUE) #109.5988
-mean(MPOS_OP_Merge$total_medicare_medical_allowed_amount, na.rm=TRUE) #103.8632
+sum(MPOS_OP_Merge$total_medicare_drug_allowed_amount, na.rm=TRUE) #25,542,384 24,809,246 20,937,423
+sum(MPOS_OP_Merge$total_medicare_medical_allowed_amount, na.rm=TRUE) #505,667,494 492,977,799 20,639,698
+mean(MPOS_OP_Merge$total_medicare_drug_allowed_amount, na.rm=TRUE) #226.0388 224.384 109.5988
+mean(MPOS_OP_Merge$total_medicare_medical_allowed_amount, na.rm=TRUE) #1,477.925 1,478.944 103.8632
 
 # compute log of pay and cost
-MPOS_OP_Merge$log_total_pay <- log(MPOS_OP_Merge$Sum_Payments)
+MPOS_OP_Merge$log_total_pay <- log(MPOS_OP_Merge$total_paid)
 MPOS_OP_Merge$log_total_medical_medicare <- log(MPOS_OP_Merge$total_medicare_medical_allowed_amount)
 MPOS_OP_Merge$log_total_drug_medicare <- log(MPOS_OP_Merge$total_medicare_drug_allowed_amount+1)
 
@@ -57,35 +58,44 @@ MPOS_OP_Merge$log_num_beneficiaries <- log(MPOS_OP_Merge$Number_of_Medicare_Bene
 
 # Medical costs
 medical_allowed <- na.omit(MPOS_OP_Merge$total_medicare_medical_allowed_amount)
-skewness(medical_allowed) # 25.73317
-skewness(log(medical_allowed+1)) #-0.7045393 (w/o +1) -0.8677353
-kurtosis(medical_allowed) #1645.832
-kurtosis(log(medical_allowed+1)) # 4.316608 (w/o +1) 4.771537
+skewness(medical_allowed) #9.884631 9.884422 25.73317
+skewness(log(medical_allowed+1)) #-0.4598715 -0.4622274 (w/o +1) -0.4899982 -0.4925424 
+kurtosis(medical_allowed) #214.1962 214.7541 1645.832
+kurtosis(log(medical_allowed+1)) #3.960915 3.970919 4.316608 (w/o +1) 4.10525 4.116734 4.771537
 hist(medical_allowed)
 hist(log(medical_allowed+1))
+
+# Total Pay
+total_pay <- na.omit(MPOS_OP_Merge$total_paid)
+skewness(total_pay) #178.3375 171.9721
+skewness(log(total_pay+1)) #0.6934898 0.6958679
+kurtosis(total_pay) #43,460.72 44,328.46
+kurtosis(log(total_pay+1)) #3.813726 3.790041
+hist(total_pay)
+hist(log(total_pay+1))
 
 #######################################################
 # Plots of total pay vs medical costs
 #######################################################
 
 # Figure 1 & supplementary figure 1
-(med_total_pay <- median(MPOS_OP_Merge$Sum_Payments, na.rm=TRUE)) #207.395
-(Q99_total_pay <- quantile(MPOS_OP_Merge$Sum_Payments, probs=0.99, na.rm=TRUE)) #55414.65 
-(Q01_total_pay <- quantile(MPOS_OP_Merge$Sum_Payments, probs=0.01, na.rm=TRUE)) #10.7
-(Q75_total_pay <- quantile(MPOS_OP_Merge$Sum_Payments, probs=0.75, na.rm=TRUE)) #729.1175
-(Q25_total_pay <- quantile(MPOS_OP_Merge$Sum_Payments, probs=0.25, na.rm=TRUE)) #62.54
-(Q99_medical <- quantile(MPOS_OP_Merge$total_medicare_medical_allowed_amount, probs=0.99, na.rm=TRUE)) #698.9083
-(Q01_medical <- quantile(MPOS_OP_Merge$total_medicare_medical_allowed_amount, probs=0.01, na.rm=TRUE)) #3
-(Q99_medical_per <- quantile(MPOS_OP_Merge$total_medicare_medical_per_beneficiary, probs=0.99, na.rm=TRUE)) #7.676912
-(Q01_medical_per <- quantile(MPOS_OP_Merge$total_medicare_medical_per_beneficiary, probs=0.01, na.rm=TRUE)) #0.001327306 
+(med_total_pay <- median(MPOS_OP_Merge$total_paid, na.rm=TRUE)) #190.98 189.11 207.395
+(Q99_total_pay <- quantile(MPOS_OP_Merge$total_paid, probs=0.99, na.rm=TRUE)) #56,499.52 55,217.08 55,414.65 
+(Q01_total_pay <- quantile(MPOS_OP_Merge$total_paid, probs=0.01, na.rm=TRUE)) #10.73 10.74 10.7
+(Q75_total_pay <- quantile(MPOS_OP_Merge$total_paid, probs=0.75, na.rm=TRUE)) #668.3775 656.915 729.1175
+(Q25_total_pay <- quantile(MPOS_OP_Merge$total_paid, probs=0.25, na.rm=TRUE)) #59.22 58.77 62.54
+(Q99_medical <- quantile(MPOS_OP_Merge$total_medicare_medical_allowed_amount, probs=0.99, na.rm=TRUE)) #8606.657 8595.322 698.9083
+(Q01_medical <- quantile(MPOS_OP_Merge$total_medicare_medical_allowed_amount, probs=0.01, na.rm=TRUE)) #40.55 40.65588 3
+(Q99_medical_per <- quantile(MPOS_OP_Merge$total_medicare_medical_per_beneficiary, probs=0.99, na.rm=TRUE)) #15.58803 15.51197 7.676912
+(Q01_medical_per <- quantile(MPOS_OP_Merge$total_medicare_medical_per_beneficiary, probs=0.01, na.rm=TRUE)) #0.2265007 0.2266918 0.001327306 
 
-pdf('spaghetti_zoom2.pdf')
+pdf('spaghetti_zoom5.pdf')
 ggplot(MPOS_OP_Merge, aes(x=log_total_pay, y=log_total_medical_medicare)) + 
   stat_smooth(geom='line', aes(group=State_Code_of_the_Provider), se=FALSE, method='loess', alpha=0.5) + 
   geom_vline(xintercept = c(log(Q25_total_pay), log(Q75_total_pay)), color='red') + 
   theme_bw() + theme(panel.grid=element_blank()) + 
   xlab('Log Total Open Payments') + ylab('Log Total Medical Costs') + 
-  coord_cartesian(xlim = c(3,9), ylim = c(10, 12.5))
+  coord_cartesian(xlim = c(3,9), ylim = c(6, 7.25))
 dev.off()
 
 set.seed(23758923) #oddly specific number?
@@ -94,7 +104,7 @@ samp <- sort(sample(1:N, round(N/10), replace = FALSE))
 MPOS_OP_Merge_samp <- MPOS_OP_Merge[samp, ]
 
 # Number of observations in spaghetti plots?
-sum(!is.na(MPOS_OP_Merge$log_total_medical_medicare) & !is.na(MPOS_OP_Merge$log_total_pay)) #198,720
+sum(!is.na(MPOS_OP_Merge$log_total_medical_medicare) & !is.na(MPOS_OP_Merge$log_total_pay)) #342,147 333,331 198,720
 sum(!is.na(MPOS_OP_Merge$log_total_medical_medicare_per_beneficiary) & !is.na(MPOS_OP_Merge$log_total_pay))
 
 pdf('spaghetti_points2.pdf')
@@ -117,50 +127,59 @@ ggplot(MPOS_OP_Merge, aes(x=log_total_pay, y=log_total_medical_medicare_per_bene
   coord_cartesian(xlim = log(c(Q01_total_pay, Q99_total_pay)), ylim = log(c(Q01_medical_per, Q99_medical_per)))
 dev.off()
 
+pdf('spaghetti_zoom_perBeneficiary5.pdf')
+ggplot(MPOS_OP_Merge, aes(x=log_total_pay, y=log_total_medical_medicare_per_beneficiary)) + 
+  stat_smooth(geom='line', aes(group=State_Code_of_the_Provider), se=FALSE, method='loess', alpha=0.5) +
+  geom_vline(xintercept=c(log(Q25_total_pay), log(Q75_total_pay)), color='red') + 
+  theme_bw() + theme(panel.grid=element_blank()) +
+  xlab('Log Total Open Payments') + ylab('Log Total Medical Costs per Beneficiary') +
+  coord_cartesian(xlim=c(3, 9), ylim=c(-0.5, 1.5)) # Different zoom values due to different results
+dev.off()
+
 ##########################################################
 # LIMIT REGRESSION MODEL TO MIDDLE 50% OF PAYMENTS (LINEAR PART)
 
-#exclude non-mathced providers
-MPOS_OP_Merge <- dplyr::filter(MPOS_OP_Merge, !is.na(National_Provider_Identifier))
+#exclude non-matched providers
+MPOS_OP_Merge <- dplyr::filter(MPOS_OP_Merge, !is.na(NPI))
 # limit to 50% of payments
-MPOS_OP_Merge_middle <- MPOS_OP_Merge[MPOS_OP_Merge$Sum_Payments > Q25_total_pay,]
-MPOS_OP_Merge_middle <- MPOS_OP_Merge_middle[MPOS_OP_Merge_middle$Sum_Payments < Q75_total_pay,]
+MPOS_OP_Merge_middle <- MPOS_OP_Merge[MPOS_OP_Merge$total_paid > Q25_total_pay,]
+MPOS_OP_Merge_middle <- MPOS_OP_Merge_middle[MPOS_OP_Merge_middle$total_paid < Q75_total_pay,]
 
 ##########################################################
 # GET SLOPE ESTIMATE (DV = MEDICAL COSTS)
 fit <- lm(log_total_medical_medicare ~ log_total_pay + log_num_beneficiaries + State_Code_of_the_Provider - 1, data = MPOS_OP_Merge_middle)
-summary(fit) #coefficent of log_total_pay = -0.022691
-round(confint(fit, parm = 'log_total_pay'), 3) # -0.032, -0.013
-length(fit$residuals) #99,363
-sum(!is.na(MPOS_OP_Merge_middle$log_total_medical_medicare)) #99363
+summary(fit) #coefficent of log_total_pay = 0.013790 0.012775, -0.022691
+round(confint(fit, parm = 'log_total_pay'), 3) # 0.009  0.019 0.008  0.018, -0.032 -0.013
+length(fit$residuals) #171,065 166,664 99,363
+sum(!is.na(MPOS_OP_Merge_middle$log_total_medical_medicare)) #166,664 99,363
 
 # Controlling for drug expenditures
 fit2 <- lm(log_total_medical_medicare ~ log_total_pay + log_total_drug_medicare + log_num_beneficiaries + State_Code_of_the_Provider - 1, data = MPOS_OP_Merge_middle)
-summary(fit2) #coefficient of log_total_pay = -0.018123
-round(confint(fit2, parm = 'log_total_pay'), 3) # -0.028, -0.009
-length(fit2$residuals) #95,432
+summary(fit2) #coefficient of log_total_pay =-0.005502 -0.007545, -0.018123
+round(confint(fit2, parm = 'log_total_pay'), 3) #-0.013  0.002, -0.015      0, -0.028 -0.009
+length(fit2$residuals) #54,000 52,886 95,432
 
 #correlation between drug and medical costs
 cor(MPOS_OP_Merge_middle$total_medicare_medical_allowed_amount, MPOS_OP_Merge_middle$total_medicare_drug_allowed_amount, method = 'spearman', use = 'pairwise.complete.obs')
-#0.1918653
+#-0.01453288 -0.01439348 0.1918653
 
 ##########################################################
 # GET SLOPE ESTIMATE (DV = DRUG COSTS)
 
 MPOS_OP_Merge_middle_drug <- filter(MPOS_OP_Merge_middle, total_medicare_drug_allowed_amount > 0)
-nrow(MPOS_OP_Merge_middle_drug) #95,432
+nrow(MPOS_OP_Merge_middle_drug) #54,009 52,894 95,432
 fit_drug <- lm(log_total_drug_medicare ~ log_total_pay + log_num_beneficiaries + State_Code_of_the_Provider - 1, data = MPOS_OP_Merge_middle_drug)
-summary(fit_drug) #coefficient of log_total_pay = -0.027310
-round(confint(fit_drug, parm = 'log_total_pay'), 3) #-0.037, -0.018
+summary(fit_drug) #coefficient of log_total_pay = 0.101031 0.100711    -0.027310
+round(confint(fit_drug, parm = 'log_total_pay'), 3) #0.079  0.123 0.078  0.123, -0.037, -0.018
 
 ##########################################################
 # MEDIAN MEDICAL AND DRUG COSTS
 
-median(MPOS_OP_Merge_middle$Sum_Payments, na.rm = TRUE) #207.4
-median(MPOS_OP_Merge_middle$total_medicare_medical_allowed_amount, na.rm = TRUE) #76.34
+median(MPOS_OP_Merge_middle$total_paid, na.rm = TRUE) #191 189.11, 207.4
+median(MPOS_OP_Merge_middle$total_medicare_medical_allowed_amount, na.rm = TRUE) #850.4425 852.5313, 76.34
 
-median(MPOS_OP_Merge_middle_drug$Sum_Payments, na.rm = TRUE) #209.4
-median(MPOS_OP_Merge_middle_drug$total_medicare_drug_allowed_amount, na.rm = TRUE) #76.34
+median(MPOS_OP_Merge_middle_drug$total_paid, na.rm = TRUE) #229.39 227.18, 209.4
+median(MPOS_OP_Merge_middle_drug$total_medicare_drug_allowed_amount, na.rm = TRUE) #53.93476 53.95227, 76.34
 
 ##########################################################
 # GET SLOPE ESTIMATE WITHIN EACH STATE (DV = TOTAL MEDICAL COSTS)
@@ -190,7 +209,7 @@ count_by_state <- NULL
 for(i in state_list) {
   print(paste0('On ', i))
   state_data <- filter(MPOS_OP_Merge, state==i)
-  state_data <- dplyr::select(state_data, Sum_Payments, total_medicare_medical_allowed_amount, Number_of_Medicare_Beneficiaries)
+  state_data <- dplyr::select(state_data, total_paid, total_medicare_medical_allowed_amount, Number_of_Medicare_Beneficiaries)
   state_data <- na.omit(state_data)
   
   pcor_i <- pcor(state_data, method = 'spearman')$estimate[1,2]
